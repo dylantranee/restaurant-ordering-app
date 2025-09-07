@@ -1,128 +1,156 @@
 import menuArray from "./data.js";
 
-const paymentModalForm = document.getElementById("payment-modal-form");
 let orderArr = [];
 
 document.addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON") {
-    // Handle button clicks
-    const action = e.target.dataset.action;
+  if (e.target.type === "button") {
+    const id = parseInt(e.target.dataset.id);
 
-    if (action === "add") {
-      handleAddItemBtnClick(parseInt(e.target.dataset.id));
-    } else if (action === "remove") {
-      handleRemoveItemBtnClick(e.target.dataset.index);
-    } else if (e.target.id === "complete-order-btn") {
+    if (e.target.dataset.action === "add-item") {
+      handleAddItemBtnClick(id);
+    } else if (e.target.dataset.action === "remove-item") {
+      handleRemoveItemBtnClick(id);
+    } else if (e.target.dataset.action === "complete-order") {
       handleCompleteOrderBtnClick();
     }
   } else if (e.target.id === "payment-modal-overlay") {
-    // Handle div click
     closePaymentModal();
   }
 });
-paymentModalForm.addEventListener("submit", handlePayBtnSubmit);
 
-let count = 0;
+document.addEventListener("submit", (e) => {
+  handlePaymentFormSubmission(e);
+});
+
 function handleAddItemBtnClick(id) {
-  // Stretch Goal: Update the function so that the orderArr stores the number of items in the cart
-  menuArray.forEach((item) => {
-    if (item.id === id) {
-      orderArr.push({ ...item, index: count++ });
-    }
-  });
+  const existingItem = orderArr.find((item) => item.id === id);
+
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    const menuItem = menuArray.find((item) => item.id === id);
+    orderArr.push({ ...menuItem, quantity: 1 });
+  }
 
   renderOrderSummary();
 }
 
-function handleRemoveItemBtnClick(index) {
-  orderArr = orderArr.filter((orderItem) => orderItem.index != index);
+function handleRemoveItemBtnClick(id) {
+  const selectedItem = orderArr.find((orderItem) => orderItem.id === id);
+  if (selectedItem.quantity === 1) {
+    const selectedItemIndex = orderArr.indexOf(selectedItem);
+    orderArr.splice(selectedItemIndex, 1);
+  } else {
+    selectedItem.quantity--;
+  }
 
   renderOrderSummary();
+}
+
+function handleCompleteOrderBtnClick() {
+  const paymentModal = document.getElementById("payment-modal");
+  paymentModal.classList.remove("hidden");
+}
+
+function handlePaymentFormSubmission(e) {
+  e.preventDefault();
+  closePaymentModal();
+  clearOrderSummary();
+  renderThankYou();
+}
+
+function closePaymentModal() {
+  const paymentModal = document.getElementById("payment-modal");
+  paymentModal.classList.add("hidden");
+}
+
+function clearOrderSummary() {
+  const orderSummary = document.getElementById("order-summary");
+  orderSummary.classList.add("hidden");
+}
+
+function renderThankYou() {
+  const thankYou = document.getElementById("thank-you");
+  thankYou.classList.remove("hidden");
 }
 
 function renderOrderSummary() {
-  document.getElementById("order-summary").innerHTML = getOrderSummaryHtml();
+  const orderSummary = document.getElementById("order-summary");
+  orderSummary.innerHTML = getOrderSummaryHtml();
 }
 
 function getOrderSummaryHtml() {
   if (orderArr.length !== 0) {
     const totalPrice = orderArr.reduce(
-      (totalPrice, currItem) => totalPrice + currItem.price,
+      (total, curr) => total + curr.price * curr.quantity,
       0
     );
 
     return `
 			<h2 class="order-summary__title">Your order</h2>
-			<ul class="order-summary-list">
-				${getOrderSummaryListHtml()}
-			</ul>
-			<div class="row">
-				<p class="order-summary__total">Total price:</p>
-				<p class="order-summary__price">$${totalPrice}</p>
+			<div class="order-items">${getOrderItemsHtml()}</div>
+			<div class="total-price__info">
+				<p class="total-price__text">Total price:</p>
+				<span class="total-price__price align-right">$${totalPrice}</span>
 			</div>
-			<button type="button" class="btn btn--rounded btn--primary" id="complete-order-btn">Complete order</button>
+			<button 
+				type="button" 
+				class="btn btn--rounded btn--primary" 
+				data-action="complete-order"
+			>
+				Complete order
+			</button>
 		`;
   } else return "";
 }
 
-function getOrderSummaryListHtml() {
+function getOrderItemsHtml() {
   return orderArr
     .map((orderItem) => {
-      const { name, price, index } = orderItem;
+      const { name, id, price, quantity } = orderItem;
 
       return `
-			<li class="order-summary-item">
-				<p class="order-summary-item__title">${name}</p>
-				<button type="button" class="btn btn--remove" data-action="remove" data-index="${index}">remove</button>
-				<p class="order-summary-item__price">$${price}</p>
-			</li>
-		`;
+				<div class="order-item">
+					<p class="order-item__name">${name}</p>
+					<p class="order-item__quantity">${quantity > 1 ? "x" + quantity : ""}</p>
+					<button 
+						type="button" 
+						class="btn btn--remove-item" 
+						data-id="${id}" 
+						data-action="remove-item"
+					>
+						remove
+					</button>
+					<p class="order-item__price align-right">$${price}</p>
+				</div>
+			`;
     })
     .join("");
 }
 
-function handleCompleteOrderBtnClick() {
-  document.getElementById("payment-modal").classList.remove("hidden");
+function renderMenuItems() {
+  const menu = document.getElementById("menu");
+  menu.innerHTML = getMenuItemsHtml();
 }
 
-function closePaymentModal() {
-  document.getElementById("payment-modal").classList.add("hidden");
-}
-
-function handlePayBtnSubmit(e) {
-  e.preventDefault();
-  closePaymentModal();
-  document.getElementById("order-summary").innerHTML = "";
-  document.getElementById("thank-you").classList.remove("hidden");
-  document.querySelectorAll(".btn[data-action='add']").forEach((btn) => {
-    btn.disabled = true;
-  });
-}
-
-// Rendering
-
-function renderMenu() {
-  document.getElementById("menu").innerHTML = getMenuHtml();
-}
-
-function getMenuHtml() {
+function getMenuItemsHtml() {
   return menuArray
     .map((menuItem) => {
       const { name, ingredients, id, price, emoji } = menuItem;
 
       return `
-    	<li class="menu-item">
+			<div class="menu-item">
 				<span class="menu-item__icon">${emoji}</span>
-    		<div class="menu-item__info">
-					<h2 class="menu-item__title">${name}</h2>
-					<p class="menu-item__subtitle">${ingredients.join(", ")}</p>
+				<div class="menu-item__info">
+					<h2 class="menu-item__name">${name}</h2>
+					<p class="menu-item__ingredients">${ingredients.join(", ")}</p>
 					<p class="menu-item__price">$${price}</p>
 				</div>
-				<button type="button" class="btn btn--round" data-action="add" data-id="${id}">+</button>
-    	</li>
-    `;
+				<button type="button" class="btn btn--circle align-right" data-id="${id}" data-action="add-item">+</button>
+			</div>
+		`;
     })
     .join("");
 }
 
-renderMenu();
+renderMenuItems();

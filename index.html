@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurant Ordering App</title>
-
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,61 +14,63 @@
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css" />
   </head>
-
   <body>
-    <header class="header">
+    <header>
       <div class="container">
-        <h1 class="site-title">Jimmy’s Diner</h1>
+        <h1 class="site-title">Jimmy's Diner</h1>
         <p class="site-subtitle">The best burgers and pizzas in town.</p>
       </div>
     </header>
 
     <main>
       <div class="container">
-        <ul class="menu" id="menu"></ul>
-        <div class="order-summary" id="order-summary"></div>
+        <section class="menu" id="menu">
+          <!-- Menu Items -->
+        </section>
+        <section class="order-summary" id="order-summary">
+          <!-- Order Summary -->
+        </section>
       </div>
     </main>
 
     <div class="payment-modal hidden" id="payment-modal">
       <div class="payment-modal-overlay" id="payment-modal-overlay"></div>
       <div class="payment-modal-content">
-        <form class="payment-modal-form" id="payment-modal-form">
-          <h2 class="payment-modal-form__title">Enter card details</h2>
+        <form class="payment-form">
+          <h2 class="payment-form__title">Enter card details</h2>
           <input
-            class="payment-modal-form__input"
+            class="payment-form__input"
             type="text"
             placeholder="Enter your name"
             pattern="[A-Za-z\s]{2,50}"
+            title="Name must be 2 to 50 characters"
             required
           />
           <input
-            class="payment-modal-form__input"
+            class="payment-form__input"
             type="text"
             placeholder="Enter card number"
-            pattern="[0-9]{13,19}"
+            pattern="[0-9]{13,14}"
             title="Card number must be 13 to 19 digits"
-            inputmode="numeric"
             required
           />
           <input
-            class="payment-modal-form__input"
+            class="payment-form__input"
             type="tel"
             placeholder="Enter CVV"
-            pattern="[0-9]{3,4}"
-            title="CVV must be 3 or 4 digits"
-            inputmode="numeric"
+            pattern="[0-9]{3}"
+            title="CVV must be 3 digits"
             required
           />
-          <button class="btn btn--rounded btn--primary" id="pay-btn">
+          <button type="submit" class="btn btn--rounded btn--primary">
             Pay
           </button>
         </form>
       </div>
     </div>
 
-    <div class="thank-you hidden" id="thank-you">
-      <div class="container">
+    <div class="container">
+      <div class="thank-you hidden" id="thank-you">
         <p class="thank-you-text">Thanks! Your order is on its way!</p>
       </div>
     </div>
